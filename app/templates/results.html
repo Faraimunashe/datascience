@@ -1,115 +1,318 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Dataset Summary</title>
-    <style>
-        /* Basic styling for tables */
-        body { font-family: Arial, sans-serif; }
-        .container { width: 90%; margin: 20px auto; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-        th { background-color: #4CAF50; color: white; }
-        h1, h2 { color: #333; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Dataset Summary</h1>
-
-        <!-- Metadata Section -->
-        <h2>Metadata</h2>
-        <table>
-            <tr><th>Attribute</th><th>Value</th></tr>
-            {% for key, value in dataset_summary['Metadata'].items() %}
-                <tr><td>{{ key }}</td><td>{{ value }}</td></tr>
-            {% endfor %}
-        </table>
-
-        <!-- Summary Statistics -->
-        <h2>Summary Statistics</h2>
-        <table>
-            <tr>
-                <th>Statistic</th>
-                {% for col in dataset_summary['Summary Statistics'] %}
-                    <th>{{ col }}</th>
-                {% endfor %}
-            </tr>
-            {% for stat, values in dataset_summary['Summary Statistics'].items() %}
-                <tr>
-                    <td>{{ stat }}</td>
-                    {% for value in values.values() %}
-                        <td>{{ value }}</td>
-                    {% endfor %}
-                </tr>
-            {% endfor %}
-        </table>
-
-        <!-- Missing Data Information -->
-        <h2>Missing Data</h2>
-        <table>
-            <tr><th>Column</th><th>Total Missing</th><th>Percentage Missing</th></tr>
-            {% for col, total in dataset_summary['Missing Data']['Total Missing'].items() %}
-                <tr>
-                    <td>{{ col }}</td>
-                    <td>{{ total }}</td>
-                    <td>{{ dataset_summary['Missing Data']['Percentage Missing'][col] }}%</td>
-                </tr>
-            {% endfor %}
-        </table>
-
-        <!-- Unique Values -->
-        <h2>Unique Values</h2>
-        <table>
-            <tr><th>Column</th><th>Unique Values</th></tr>
-            {% for col, value in dataset_summary['Unique Values'].items() %}
-                <tr><td>{{ col }}</td><td>{{ value }}</td></tr>
-            {% endfor %}
-        </table>
-
-        <!-- Most Common Values -->
-        <h2>Most Common Values</h2>
-        <table>
-            <tr><th>Column</th><th>Most Common Value</th></tr>
-            {% for col, value in dataset_summary['Most Common Values'].items() %}
-                <tr><td>{{ col }}</td><td>{{ value }}</td></tr>
-            {% endfor %}
-        </table>
-
-        <!-- Correlation Matrix -->
-        <h2>Correlation Matrix</h2>
-        <table>
-            <tr>
-                <th>Variable</th>
-                {% for col in dataset_summary['Correlation Matrix'] %}
-                    <th>{{ col }}</th>
-                {% endfor %}
-            </tr>
-            {% for row, values in dataset_summary['Correlation Matrix'].items() %}
-                <tr>
-                    <td>{{ row }}</td>
-                    {% for value in values.values() %}
-                        <td>{{ value }}</td>
-                    {% endfor %}
-                </tr>
-            {% endfor %}
-        </table>
-
-        <!-- Distribution Statistics -->
-        <h2>Distribution Statistics</h2>
-        <table>
-            <tr><th>Statistic</th><th>Value</th></tr>
-            {% for stat, values in dataset_summary['Distribution Statistics'].items() %}
-                <tr>
-                    <td>{{ stat }}</td>
-                    <td>{{ values }}</td>
-                </tr>
-            {% endfor %}
-        </table>
-
-        <div style="margin-top: 20px;">
-            <a href="{{ url_for('dashboard.dashboard') }}">Upload another file</a>
+{% extends "base.html" %}
+{% block content %}
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
+        <div class="d-block mb-4 mb-md-0">
+            <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
+                <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
+                    <li class="breadcrumb-item">
+                        <a href="{{ url_for('dashboard.dashboard') }}">
+                            <svg class="icon icon-xxs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard.dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Results</li>
+                </ol>
+            </nav>
+            <h2 class="h4">Dataset Insights</h2>
+        </div>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <button type="button" class="btn btn-sm btn-gray-800 d-inline-flex align-items-center m-1" data-bs-toggle="modal" data-bs-target="#modal-default">
+                Pie Chart
+            </button>
+            <button type="button" class="btn btn-sm btn-gray-800 d-inline-flex align-items-center m-1">
+                Bar Graph
+            </button>
+            <button type="button" class="btn btn-sm btn-gray-800 d-inline-flex align-items-center m-1">
+                Line Graph
+            </button>
         </div>
     </div>
-</body>
-</html>
+    <div class="container my-4">
+        <!-- Metadata Section -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h2 class="card-title mb-3">Metadata</h2>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Attribute</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for key, value in dataset_summary['Metadata'].items() %}
+                            <tr>
+                                <td>{{ key }}</td>
+                                <td>{{ value }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Summary Statistics Section -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h2 class="card-title mb-3">Summary Statistics</h2>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Statistic</th>
+                            {% for col in dataset_summary['Summary Statistics'] %}
+                                <th>{{ col }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat, values in dataset_summary['Summary Statistics'].items() %}
+                            <tr>
+                                <td>{{ stat }}</td>
+                                {% for value in values.values() %}
+                                    <td>{{ value }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Missing Data Section -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h2 class="card-title mb-3">Missing Data</h2>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>Total Missing</th>
+                            <th>Percentage Missing</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for col, total in dataset_summary['Missing Data']['Total Missing'].items() %}
+                            <tr>
+                                <td>{{ col }}</td>
+                                <td>{{ total }}</td>
+                                <td>{{ dataset_summary['Missing Data']['Percentage Missing'][col] }}%</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Unique Values Section -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h2 class="card-title mb-3">Unique Values</h2>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>Unique Values</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for col, value in dataset_summary['Unique Values'].items() %}
+                            <tr>
+                                <td>{{ col }}</td>
+                                <td>{{ value }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Most Common Values Section -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h2 class="card-title mb-3">Most Common Values</h2>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>Most Common Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for col, value in dataset_summary['Most Common Values'].items() %}
+                            <tr>
+                                <td>{{ col }}</td>
+                                <td>{{ value }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Correlation Matrix Section -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h2 class="card-title mb-3">Correlation Matrix</h2>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            {% for col in dataset_summary['Correlation Matrix'] %}
+                                <th>{{ col }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row, values in dataset_summary['Correlation Matrix'].items() %}
+                            <tr>
+                                <td>{{ row }}</td>
+                                {% for value in values.values() %}
+                                    <td>{{ value }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Distribution Statistics Section -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h2 class="card-title mb-3">Distribution Statistics</h2>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Statistic</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat, values in dataset_summary['Distribution Statistics'].items() %}
+                            <tr>
+                                <td>{{ stat }}</td>
+                                <td>{{ values }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-secondary">Upload another file</a>
+        </div>
+    </div>
+
+    
+
+    <div class="modal fade" id="modal-default" tabindex="-1" aria-labelledby="modal-pie" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form id="pieChartForm">
+                    <div class="modal-header">
+                        <h2 class="h6 modal-title">Pie Chart Wizard</h2>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-4">
+                            <label for="selected_column">Label Column</label>
+                            <select id="selectedColumn" name="selected_column" class="form-control" required>
+                                <option selected disabled>Select Column</option>
+                                {% for col in dataset_summary['Metadata']['Column Names and Types'].keys() %}
+                                    <option value="{{ col }}">{{ col }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div id="chartContainer" style="display: none;">
+                            <canvas id="pieChart"></canvas>
+                        </div>
+                        <div id="errorContainer" style="color: red; display: none;"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" onclick="generatePieChart()" class="btn btn-secondary">Generate Pie Chart</button>
+                        <button type="button" class="btn btn-link text-gray-600 ms-auto" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let pieChartInstance = null; // Variable to hold the chart instance
+
+        function generatePieChart() {
+            const selectedColumn = document.getElementById('selectedColumn').value;
+            const errorContainer = document.getElementById('errorContainer');
+            const chartContainer = document.getElementById('chartContainer');
+            const pieChartCanvas = document.getElementById('pieChart');
+
+            errorContainer.style.display = 'none';
+            chartContainer.style.display = 'none';
+
+            console.log(selectedColumn);
+
+            fetch('/generate_pie_chart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ selected_column: selectedColumn })
+            })
+            .then(response => response.json().then(data => ({ status: response.status, data })))
+            .then(result => {
+                const { status, data } = result;
+
+                if (status === 200) {
+                    // Destroy previous chart instance if it exists
+                    if (pieChartInstance) {
+                        pieChartInstance.destroy();
+                    }
+
+                    // Success: Generate the pie chart
+                    const labels = data.labels;
+                    const values = data.values;
+
+                    chartContainer.style.display = 'block';
+
+                    pieChartInstance = new Chart(pieChartCanvas, {
+                        type: 'pie',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: values,
+                                backgroundColor: [
+                                    'rgba(255, 99, 132, 0.2)',
+                                    'rgba(54, 162, 235, 0.2)',
+                                    'rgba(255, 206, 86, 0.2)',
+                                    'rgba(75, 192, 192, 0.2)',
+                                    'rgba(153, 102, 255, 0.2)',
+                                    'rgba(255, 159, 64, 0.2)'
+                                ],
+                                borderColor: [
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                    'rgba(255, 159, 64, 1)'
+                                ],
+                                borderWidth: 1
+                            }]
+                        }
+                    });
+                } else {
+                    // Handle errors by displaying error message
+                    errorContainer.textContent = data.error || 'An unknown error occurred.';
+                    errorContainer.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                errorContainer.textContent = `Error: ${error.message}`;
+                errorContainer.style.display = 'block';
+            });
+        }
+
+    </script>
+{% endblock %}

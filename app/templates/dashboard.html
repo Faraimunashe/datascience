@@ -1,76 +1,30 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Dashboard</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .container {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 300px;
-            text-align: center;
-        }
-        h1 {
-            color: #333;
-        }
-        h2 {
-            color: #666;
-        }
-        form {
-            margin-top: 20px;
-        }
-        input[type="file"] {
-            margin-top: 10px;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .flash-messages {
-            margin-top: 15px;
-            color: #e74c3c;
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Dashboard</h1>
-        <h2>Upload a CSV File</h2>
-        <form action="{{ url_for('dashboard.dashboard') }}" method="post" enctype="multipart/form-data">
-            <input type="file" name="file">
-            <button type="submit">Upload</button>
-        </form>
-        
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <div class="flash-messages">
-              {% for message in messages %}
-                <p>{{ message }}</p>
-              {% endfor %}
+{% extends "base.html" %}
+{% block content %}
+    <div class="container my-4">
+        <h1 class="mb-4">Dashboard</h1>
+
+        <!-- Card for File Upload -->
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="card-title mb-3">Upload a CSV File</h2>
+                <form action="{{ url_for('dashboard.dashboard') }}" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <input type="file" name="file" class="form-control" aria-label="File upload">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </form>
             </div>
-          {% endif %}
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert alert-info mt-4" role="alert">
+                    {% for message in messages %}
+                        <p class="mb-0">{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
         {% endwith %}
     </div>
-</body>
-</html>
+{% endblock %}
