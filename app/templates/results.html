@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dataset Summary</title>
+    <style>
+        /* Basic styling for tables */
+        body { font-family: Arial, sans-serif; }
+        .container { width: 90%; margin: 20px auto; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background-color: #4CAF50; color: white; }
+        h1, h2 { color: #333; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Dataset Summary</h1>
+
+        <!-- Metadata Section -->
+        <h2>Metadata</h2>
+        <table>
+            <tr><th>Attribute</th><th>Value</th></tr>
+            {% for key, value in dataset_summary['Metadata'].items() %}
+                <tr><td>{{ key }}</td><td>{{ value }}</td></tr>
+            {% endfor %}
+        </table>
+
+        <!-- Summary Statistics -->
+        <h2>Summary Statistics</h2>
+        <table>
+            <tr>
+                <th>Statistic</th>
+                {% for col in dataset_summary['Summary Statistics'] %}
+                    <th>{{ col }}</th>
+                {% endfor %}
+            </tr>
+            {% for stat, values in dataset_summary['Summary Statistics'].items() %}
+                <tr>
+                    <td>{{ stat }}</td>
+                    {% for value in values.values() %}
+                        <td>{{ value }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+
+        <!-- Missing Data Information -->
+        <h2>Missing Data</h2>
+        <table>
+            <tr><th>Column</th><th>Total Missing</th><th>Percentage Missing</th></tr>
+            {% for col, total in dataset_summary['Missing Data']['Total Missing'].items() %}
+                <tr>
+                    <td>{{ col }}</td>
+                    <td>{{ total }}</td>
+                    <td>{{ dataset_summary['Missing Data']['Percentage Missing'][col] }}%</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <!-- Unique Values -->
+        <h2>Unique Values</h2>
+        <table>
+            <tr><th>Column</th><th>Unique Values</th></tr>
+            {% for col, value in dataset_summary['Unique Values'].items() %}
+                <tr><td>{{ col }}</td><td>{{ value }}</td></tr>
+            {% endfor %}
+        </table>
+
+        <!-- Most Common Values -->
+        <h2>Most Common Values</h2>
+        <table>
+            <tr><th>Column</th><th>Most Common Value</th></tr>
+            {% for col, value in dataset_summary['Most Common Values'].items() %}
+                <tr><td>{{ col }}</td><td>{{ value }}</td></tr>
+            {% endfor %}
+        </table>
+
+        <!-- Correlation Matrix -->
+        <h2>Correlation Matrix</h2>
+        <table>
+            <tr>
+                <th>Variable</th>
+                {% for col in dataset_summary['Correlation Matrix'] %}
+                    <th>{{ col }}</th>
+                {% endfor %}
+            </tr>
+            {% for row, values in dataset_summary['Correlation Matrix'].items() %}
+                <tr>
+                    <td>{{ row }}</td>
+                    {% for value in values.values() %}
+                        <td>{{ value }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+
+        <!-- Distribution Statistics -->
+        <h2>Distribution Statistics</h2>
+        <table>
+            <tr><th>Statistic</th><th>Value</th></tr>
+            {% for stat, values in dataset_summary['Distribution Statistics'].items() %}
+                <tr>
+                    <td>{{ stat }}</td>
+                    <td>{{ values }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <div style="margin-top: 20px;">
+            <a href="{{ url_for('dashboard.dashboard') }}">Upload another file</a>
+        </div>
+    </div>
+</body>
+</html>
