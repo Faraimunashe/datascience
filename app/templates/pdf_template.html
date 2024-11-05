@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dataset Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        .container {
+            width: 90%;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: #f7f7f7;
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 2px solid #4CAF50;
+            color: #4CAF50;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .section {
+            margin-top: 20px;
+        }
+        .section h2 {
+            font-size: 18px;
+            color: #4CAF50;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .sub-header {
+            text-align: center;
+            font-size: 16px;
+            color: #888;
+        }
+        .details {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+        }
+        .details p {
+            margin: 8px 0;
+        }
+        .details span {
+            font-weight: bold;
+            color: #333;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #aaa;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>Dataset Summary Report</h1>
+            <p>Generated for: {{ dataset.filename }}</p>
+        </div>
+
+        <div class="details">
+            <p><span>File ID:</span> {{ dataset.id }}</p>
+            <p><span>Filename:</span> {{ dataset.filename }}</p>
+            <p><span>User:</span> {{ dataset.name }}</p>
+            <p><span>Creation Date:</span> {{ dataset.created_at.strftime('%Y-%m-%d') }}</p>
+        </div>
+
+        <!-- Metadata Section -->
+        <div class="section">
+            <h2>Metadata</h2>
+            <p><strong>Number of Rows:</strong> {{ dataset_summary["Metadata"]["Number of Rows"] }}</p>
+            <p><strong>Number of Columns:</strong> {{ dataset_summary["Metadata"]["Number of Columns"] }}</p>
+            <p><strong>Column Names and Types:</strong></p>
+            <ul>
+                {% for col, dtype in dataset_summary["Metadata"]["Column Names and Types"].items() %}
+                    <li>{{ col }}: {{ dtype }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Summary Statistics Section -->
+        <div class="section">
+            <h2>Summary Statistics</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Statistic</th>
+                        {% for col in dataset_summary["Summary Statistics"].keys() %}
+                            <th>{{ col }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat, values in dataset_summary["Summary Statistics"].items() %}
+                        <tr>
+                            <td>{{ stat }}</td>
+                            {% for value in values.values() %}
+                                <td>{{ value }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Missing Data Section -->
+        <div class="section">
+            <h2>Missing Data</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Column</th>
+                        <th>Total Missing</th>
+                        <th>Percentage Missing</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for col, total in dataset_summary["Missing Data"]["Total Missing"].items() %}
+                        <tr>
+                            <td>{{ col }}</td>
+                            <td>{{ total }}</td>
+                            <td>{{ dataset_summary["Missing Data"]["Percentage Missing"][col] }}%</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Unique and Most Common Values Section -->
+        <div class="section">
+            <h2>Unique and Most Common Values</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Column</th>
+                        <th>Unique Values</th>
+                        <th>Most Common Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for col, unique_count in dataset_summary["Unique Values"].items() %}
+                        <tr>
+                            <td>{{ col }}</td>
+                            <td>{{ unique_count }}</td>
+                            <td>{{ dataset_summary["Most Common Values"][col] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Correlation Matrix Section -->
+        <div class="section">
+            <h2>Correlation Matrix</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th> </th>
+                        {% for col in dataset_summary["Correlation Matrix"].keys() %}
+                            <th>{{ col }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for col, correlations in dataset_summary["Correlation Matrix"].items() %}
+                        <tr>
+                            <td>{{ col }}</td>
+                            {% for corr in correlations.values() %}
+                                <td>{{ corr }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Distribution Statistics Section -->
+        <div class="section">
+            <h2>Distribution Statistics</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Column</th>
+                        <th>Skewness</th>
+                        <th>Kurtosis</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for col, skewness in dataset_summary["Distribution Statistics"]["Skewness"].items() %}
+                        <tr>
+                            <td>{{ col }}</td>
+                            <td>{{ skewness }}</td>
+                            <td>{{ dataset_summary["Distribution Statistics"]["Kurtosis"][col] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <p>&copy; {{ current_year }} Your Company Name. All rights reserved.</p>
+        </div>
+    </div>
+
+</body>
+</html>

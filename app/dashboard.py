@@ -13,16 +13,11 @@ from datetime import datetime
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
-UPLOAD_FOLDER = '/app/static/uploads'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+#UPLOAD_FOLDER = '/app/static/uploads'
+#os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-def save_df_to_session(df):
-    session['dataset'] = df.to_json()
-
-def load_df_from_session():
-    if 'dataset' in session:
-        return pd.read_json(session['dataset'])
-    return None
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'uploads')
 
 
 @dashboard_bp.route('/dashboard', methods=['GET', 'POST'])
@@ -95,7 +90,7 @@ def dashboard():
                 "Distribution Statistics": distribution_stats
             }
             
-            print(dataset_summary)
+            #print(dataset_summary)
             return render_template('results.html', dataset_summary=dataset_summary)
 
         else:
@@ -132,3 +127,31 @@ def generate_pie_chart():
 
     except Exception as e:
         return jsonify({"error": "An error occurred while generating the pie chart.", "details": str(e)}), 500
+
+
+@dashboard_bp.route('/generate_bar_chart', methods=['POST'])
+@login_required
+def generate_bar_chart():
+    try:
+        data = request.get_json()
+        selected_column = data.get('selected_column')
+        
+        if not selected_column:
+            return jsonify({"error": "No column selected. Please choose a column for the bar chart."}), 400
+
+        df = pd.read_csv(session['dataset_path'])
+        if df is None:
+            return jsonify({"error": "No dataset found. Please upload the dataset again."}), 404
+
+        if selected_column not in df.columns:
+            return jsonify({"error": f'Column "{selected_column}" not found in the uploaded dataset.'}), 400
+
+        # Generate bar chart data
+        value_counts = df[selected_column].value_counts()
+        labels = value_counts.index.tolist()
+        values = value_counts.values.tolist()
+
+        return jsonify({"labels": labels, "values": values})
+
+    except Exception as e:
+        return jsonify({"error": "An error occurred while generating the bar chart.", "details": str(e)}), 500

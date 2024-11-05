@@ -19,11 +19,8 @@
             <button type="button" class="btn btn-sm btn-gray-800 d-inline-flex align-items-center m-1" data-bs-toggle="modal" data-bs-target="#modal-default">
                 Pie Chart
             </button>
-            <button type="button" class="btn btn-sm btn-gray-800 d-inline-flex align-items-center m-1">
+            <button type="button" class="btn btn-sm btn-gray-800 d-inline-flex align-items-center m-1" data-bs-toggle="modal" data-bs-target="#modal-bar">
                 Bar Graph
-            </button>
-            <button type="button" class="btn btn-sm btn-gray-800 d-inline-flex align-items-center m-1">
-                Line Graph
             </button>
         </div>
     </div>
@@ -205,8 +202,8 @@
     </div>
 
     
-
-    <div class="modal fade" id="modal-default" tabindex="-1" aria-labelledby="modal-pie" aria-hidden="true">
+    <!-- Modal for Pie Chart -->
+    <div class="modal fade" id="modal-pie" tabindex="-1" aria-labelledby="modal-pie" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <form id="pieChartForm">
@@ -216,18 +213,18 @@
                     </div>
                     <div class="modal-body">
                         <div class="mb-4">
-                            <label for="selected_column">Label Column</label>
-                            <select id="selectedColumn" name="selected_column" class="form-control" required>
+                            <label for="selectedColumnPie">Label Column</label>
+                            <select id="selectedColumnPie" name="selected_column" class="form-control" required>
                                 <option selected disabled>Select Column</option>
                                 {% for col in dataset_summary['Metadata']['Column Names and Types'].keys() %}
                                     <option value="{{ col }}">{{ col }}</option>
                                 {% endfor %}
                             </select>
                         </div>
-                        <div id="chartContainer" style="display: none;">
+                        <div id="chartContainerPie" style="display: none;">
                             <canvas id="pieChart"></canvas>
                         </div>
-                        <div id="errorContainer" style="color: red; display: none;"></div>
+                        <div id="errorContainerPie" style="color: red; display: none;"></div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" onclick="generatePieChart()" class="btn btn-secondary">Generate Pie Chart</button>
@@ -237,21 +234,53 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- Modal for Bar Chart -->
+    <div class="modal fade" id="modal-bar" tabindex="-1" aria-labelledby="modal-bar" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form id="barChartForm">
+                    <div class="modal-header">
+                        <h2 class="h6 modal-title">Bar Graph Wizard</h2>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-4">
+                            <label for="selectedColumnBar">Label Column</label>
+                            <select id="selectedColumnBar" name="selected_column" class="form-control" required>
+                                <option selected disabled>Select Column</option>
+                                {% for col in dataset_summary['Metadata']['Column Names and Types'].keys() %}
+                                    <option value="{{ col }}">{{ col }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div id="chartContainerBar" style="display: none;">
+                            <canvas id="barChart"></canvas>
+                        </div>
+                        <div id="errorContainerBar" style="color: red; display: none;"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" onclick="generateBarChart()" class="btn btn-secondary">Generate Bar Graph</button>
+                        <button type="button" class="btn btn-link text-gray-600 ms-auto" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        let pieChartInstance = null; // Variable to hold the chart instance
+        let pieChartInstance = null;
+        let barChartInstance = null;
 
         function generatePieChart() {
-            const selectedColumn = document.getElementById('selectedColumn').value;
-            const errorContainer = document.getElementById('errorContainer');
-            const chartContainer = document.getElementById('chartContainer');
+            const selectedColumn = document.getElementById('selectedColumnPie').value;
+            const errorContainer = document.getElementById('errorContainerPie');
+            const chartContainer = document.getElementById('chartContainerPie');
             const pieChartCanvas = document.getElementById('pieChart');
 
             errorContainer.style.display = 'none';
             chartContainer.style.display = 'none';
-
-            console.log(selectedColumn);
 
             fetch('/generate_pie_chart', {
                 method: 'POST',
@@ -265,16 +294,14 @@
                 const { status, data } = result;
 
                 if (status === 200) {
-                    // Destroy previous chart instance if it exists
-                    if (pieChartInstance) {
-                        pieChartInstance.destroy();
-                    }
-
-                    // Success: Generate the pie chart
                     const labels = data.labels;
                     const values = data.values;
 
                     chartContainer.style.display = 'block';
+
+                    if (pieChartInstance) {
+                        pieChartInstance.destroy();
+                    }
 
                     pieChartInstance = new Chart(pieChartCanvas, {
                         type: 'pie',
@@ -286,33 +313,66 @@
                                     'rgba(255, 99, 132, 0.2)',
                                     'rgba(54, 162, 235, 0.2)',
                                     'rgba(255, 206, 86, 0.2)',
-                                    'rgba(75, 192, 192, 0.2)',
-                                    'rgba(153, 102, 255, 0.2)',
-                                    'rgba(255, 159, 64, 0.2)'
-                                ],
-                                borderColor: [
-                                    'rgba(255, 99, 132, 1)',
-                                    'rgba(54, 162, 235, 1)',
-                                    'rgba(255, 206, 86, 1)',
-                                    'rgba(75, 192, 192, 1)',
-                                    'rgba(153, 102, 255, 1)',
-                                    'rgba(255, 159, 64, 1)'
-                                ],
+                                    'rgba(75, 192, 192, 0.2)'
+                                ]
+                            }]
+                        }
+                    });
+                } else {
+                    errorContainer.textContent = data.message;
+                    errorContainer.style.display = 'block';
+                }
+            });
+        }
+
+        function generateBarChart() {
+            const selectedColumn = document.getElementById('selectedColumnBar').value;
+            const errorContainer = document.getElementById('errorContainerBar');
+            const chartContainer = document.getElementById('chartContainerBar');
+            const barChartCanvas = document.getElementById('barChart');
+
+            errorContainer.style.display = 'none';
+            chartContainer.style.display = 'none';
+
+            fetch('/generate_bar_chart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ selected_column: selectedColumn })
+            })
+            .then(response => response.json().then(data => ({ status: response.status, data })))
+            .then(result => {
+                const { status, data } = result;
+
+                if (status === 200) {
+                    const labels = data.labels;
+                    const values = data.values;
+
+                    chartContainer.style.display = 'block';
+
+                    if (barChartInstance) {
+                        barChartInstance.destroy();
+                    }
+
+                    barChartInstance = new Chart(barChartCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: values,
+                                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
                                 borderWidth: 1
                             }]
                         }
                     });
                 } else {
-                    // Handle errors by displaying error message
-                    errorContainer.textContent = data.error || 'An unknown error occurred.';
+                    errorContainer.textContent = data.message;
                     errorContainer.style.display = 'block';
                 }
-            })
-            .catch(error => {
-                errorContainer.textContent = `Error: ${error.message}`;
-                errorContainer.style.display = 'block';
             });
         }
-
     </script>
+
 {% endblock %}

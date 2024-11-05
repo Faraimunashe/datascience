@@ -21,6 +21,10 @@ def users():
 def create_user():
     form = UserForm()
     if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user:
+            flash('error email already exists!')
+            return redirect(url_for('users.create_user'))
         hashed_password = sha256_crypt.encrypt(form.password.data)
         new_user = User(
             email=form.email.data,

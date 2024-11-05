@@ -30,10 +30,12 @@ def create_app():
     from .auth import auth_bp
     from .dashboard import dashboard_bp
     from .user import users_bp
+    from .report import reports_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(users_bp)
+    app.register_blueprint(reports_bp)
 
     from app.models import User
 
